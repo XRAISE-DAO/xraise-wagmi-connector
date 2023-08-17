@@ -29,6 +29,8 @@ export type ConnectorData<Provider = any> = {
 };
 
 export type RaiseConnectorOptions = {
+  /** Provide your own wallet url  */
+  walletUrl?: string;
   /** Name of connector */
   name?: string | ((detectedName: string | string[]) => string);
   /**
@@ -83,7 +85,6 @@ export class RaiseSigner extends Signer {
   signMessage(message: Bytes | string): Promise<string> {
     console.log("Signing");
     return (async () => "0x")();
-    return this._fail("RaiseSigner cannot sign messages", "signMessage");
   }
 
   async signTransaction(
@@ -121,7 +122,7 @@ export class RaiseSigner extends Signer {
   }
 
   connect(provider: Provider): RaiseSigner {
-    return new RaiseSigner(this.address!, provider, new AppBridge());
+    return new RaiseSigner(this.address!, provider, this.bridge);
   }
 }
 
@@ -140,7 +141,7 @@ export class RaiseConnector extends Connector<
   _provider?: Window["ethereum"];
   _switchingChains?: boolean;
 
-  bridge = new AppBridge();
+  bridge: AppBridge;
 
   iframe: HTMLIFrameElement | null = null;
 
@@ -199,6 +200,12 @@ export class RaiseConnector extends Connector<
     };
 
     super({ chains, options: options as any }); // TODO
+
+    if (options?.walletUrl) {
+      this.bridge = new AppBridge({ walletUrl: options.walletUrl });
+    } else {
+      this.bridge = new AppBridge();
+    }
 
     const provider = options.getProvider();
     Object.assign(provider as object, { chains });
@@ -423,3 +430,11 @@ export class RaiseConnector extends Connector<
 export const defaultRaiseConnector = new RaiseConnector({
   chains: [zkSync],
 }) as any;
+
+export const buildCustomRaiseConnector = (walletUrl: string) =>
+  new RaiseConnector({
+    chains: [zkSync],
+    options: {
+      walletUrl,
+    },
+  }) as any;

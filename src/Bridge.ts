@@ -40,15 +40,23 @@ interface AppApi {
   onLogoutCompleted(): void;
 }
 
+interface AppBridgeConstructorParams {
+  walletUrl?: string;
+}
+
 /**
  * The bridge on web3 website side. Connects to the keys holder, representative of the raise pay on foreign web3 website inside iframe
  */
 export class AppBridge {
-  url = WALLET_URL;
+  url: string;
   connection: WalletApi | undefined;
   promise: Promise<WalletApi> | undefined;
   window: Window | undefined;
   transactionWindow: Window | undefined;
+
+  constructor(params?: AppBridgeConstructorParams) {
+    this.url = params?.walletUrl ?? WALLET_URL;
+  }
 
   /**
    * Connects to iframe on our domain that holds domain-pinned webauthn auth, keypairs
