@@ -1,24 +1,34 @@
-import base64url from 'base64url';
-import { utils } from 'zksync-web3';
+import base64url from "base64url";
+import { utils } from "zksync-web3";
 import {
   ACCOUNT_FACTORY_ADDRESS,
   BYTES32_NULL,
   PAYMASTER_ADDRESS,
   RAISE_EMAIL_GUARDIAN_ADDRESS,
-} from '@constants/index';
-import * as zksync from 'zksync-web3';
-import { AccountFactory } from '@abis/AccountFactory';
-import { AccountFacetABI } from '@abis/AccountFacet';
-import { Provider } from 'zksync-web3';
-import { randomBytes } from 'crypto';
-import { compareArrays, getCreateCredentialDefaultArgs, getDeviceId, NULL_ADDRESS, sleep } from '@lib/utils';
-import { EVENTS } from '@lib/events';
-import { IAuthProvider } from './IAuthProvider';
-import { GuardianSignature, ILoginManager } from './ILoginManager';
-import { ethers } from 'ethers';
-import { zkSyncProvider } from '@lib/utils';
-import { SocialRecoveryFacetABI } from '@abis/SocialRecoveryFacet';
-import { defaultNonsensitiveStorage, DEVICE_CONNECT_CODE_PREFIX, RECOVERY_CODE_PREFIX } from '@lib/platform_support/NonSensitiveStorage';
+} from "../constants/index";
+import * as zksync from "zksync-web3";
+import { AccountFactory } from "../abis/AccountFactory";
+import { AccountFacetABI } from "../abis/AccountFacet";
+import { Provider } from "zksync-web3";
+import { randomBytes } from "crypto";
+import {
+  compareArrays,
+  getCreateCredentialDefaultArgs,
+  getDeviceId,
+  NULL_ADDRESS,
+  sleep,
+} from "../utils";
+import { EVENTS } from "../events";
+import { IAuthProvider } from "./IAuthProvider";
+import { ILoginManager } from "./ILoginManager";
+import { ethers } from "ethers";
+import { zkSyncProvider } from "../utils";
+import { SocialRecoveryFacetABI } from "../abis/SocialRecoveryFacet";
+import {
+  defaultNonsensitiveStorage,
+  DEVICE_CONNECT_CODE_PREFIX,
+  RECOVERY_CODE_PREFIX,
+} from "../platform_support/NonSensitiveStorage";
 
 /**
  * Raiseauthn provider. Raiseauthn is a webauthn-like protocol built using service worker api.
@@ -40,7 +50,7 @@ export class RaiseAuthnProvider implements IAuthProvider {
   /**
    * Auth method name
    */
-  authMethodName = 'raiseauthn';
+  authMethodName = "raiseauthn";
 
   /**
    * Password is required to unlock raiseauthn wallet
@@ -65,39 +75,39 @@ export class RaiseAuthnProvider implements IAuthProvider {
     var id = this.credentialId;
 
     window.navigator.serviceWorker.controller!.postMessage({
-      command: 'setCurrentCredentialId',
+      command: "setCurrentCredentialId",
       credentialId: id,
     });
 
     window.navigator.serviceWorker.controller!.postMessage({
-      command: 'getCredential',
+      command: "getCredential",
       args: {
         publicKey: {
           rpId:
-            process.env.NODE_ENV == 'production' ? 'raisepay.io' : 'localhost',
+            process.env.NODE_ENV == "production" ? "raisepay.io" : "localhost",
           challenge: ethers.utils.arrayify(txHash),
           timeout: 60000,
           allowCredentials: [
             {
-              type: 'public-key',
+              type: "public-key",
               id,
             },
           ],
-          userVerification: 'required',
+          userVerification: "required",
         },
       },
     });
 
     const credentials = (await new Promise((resolve) => {
-      navigator.serviceWorker.addEventListener('message', (event) => {
-        if (event.data.requestType == 'get') {
-          if (event.data.status == 'ok') {
+      navigator.serviceWorker.addEventListener("message", (event) => {
+        if (event.data.requestType == "get") {
+          if (event.data.status == "ok") {
             if (
               compareArrays(event.data.challenge, ethers.utils.arrayify(txHash))
             )
               resolve(event.data);
-          } else if (event.data.status == 'passwordNeeded') {
-            console.log('Password needed');
+          } else if (event.data.status == "passwordNeeded") {
+            console.log("Password needed");
           }
         }
       });
@@ -124,27 +134,27 @@ export class RaiseAuthnProvider implements IAuthProvider {
     address: string,
     email: string,
     guardianAddress: string,
-    signRequestId: string,
+    signRequestId: string
   ) {
     const wallet = zksync.Wallet.createRandom().connect(this.provider!); // Temp keypair, will sig the deploy transaction
     const paymasterParams = utils.getPaymasterParams(PAYMASTER_ADDRESS, {
-      type: 'General',
+      type: "General",
       innerInput: new Uint8Array(),
     });
 
     const accountFactory = new ethers.Contract(
       ACCOUNT_FACTORY_ADDRESS,
       AccountFactory,
-      wallet,
+      wallet
     );
 
     const emailHash = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(email));
 
     const signResp = await fetch(`/api/signup/sign`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
+        Accept: "application/json",
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         requestId: signRequestId,
@@ -161,7 +171,7 @@ export class RaiseAuthnProvider implements IAuthProvider {
 
     const signRespContent = await signResp.json();
 
-    console.log('Got signature from guardian', signRespContent);
+    console.log("Got signature from guardian", signRespContent);
 
     let tx = await accountFactory.deployAccount(
       {
@@ -181,13 +191,13 @@ export class RaiseAuthnProvider implements IAuthProvider {
           paymasterParams,
           ergsPerPubdata: utils.DEFAULT_GAS_PER_PUBDATA_LIMIT,
         },
-      },
+      }
     );
 
-    console.log('Account creation transaction', tx);
+    console.log("Account creation transaction", tx);
     const receipt = await tx.wait();
     const newAccountAddress = receipt.events.find(
-      (event: any) => event.event == 'AccountCreated',
+      (event: any) => event.event == "AccountCreated"
     );
 
     return newAccountAddress.args[0];
@@ -201,14 +211,18 @@ export class RaiseAuthnProvider implements IAuthProvider {
     const customSignature = await this.signTransaction(randomHash);
 
     const wallet = zksync.Wallet.createRandom().connect(this.provider!);
-    const account = new ethers.Contract(this.walletAddress!, AccountFacetABI, wallet);
+    const account = new ethers.Contract(
+      this.walletAddress!,
+      AccountFacetABI,
+      wallet
+    );
 
     const returnedSig = await account.isValidSignature(
       randomHash,
-      customSignature,
+      customSignature
     );
-    console.log('Returned sig', returnedSig);
-    return returnedSig == '0x1626ba7e';
+    console.log("Returned sig", returnedSig);
+    return returnedSig == "0x1626ba7e";
   }
 
   /**
@@ -219,19 +233,19 @@ export class RaiseAuthnProvider implements IAuthProvider {
     address: string,
     email: string,
     guardianAddress: string,
-    signRequestId: string,
+    signRequestId: string
   ) {
     const wallet = zksync.Wallet.createRandom().connect(this.provider!); // Temp keypair, will sig the deploy transaction
 
     const paymasterParams = utils.getPaymasterParams(PAYMASTER_ADDRESS, {
-      type: 'General',
+      type: "General",
       innerInput: new Uint8Array(),
     });
 
     const accountFactory = new ethers.Contract(
       ACCOUNT_FACTORY_ADDRESS,
       AccountFactory,
-      wallet,
+      wallet
     );
 
     const emailHash = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(email));
@@ -239,19 +253,19 @@ export class RaiseAuthnProvider implements IAuthProvider {
     const [walletAddress, credentialId] =
       await accountFactory.getUserWalletInfo(emailHash, getDeviceId());
 
-    console.log('Wallet address -> ', walletAddress);
+    console.log("Wallet address -> ", walletAddress);
 
     const socialRecovery = new ethers.Contract(
       walletAddress,
       SocialRecoveryFacetABI,
-      wallet,
+      wallet
     );
 
     const signResp = await fetch(`/api/recovery/sign`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
+        Accept: "application/json",
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         requestId: signRequestId,
@@ -268,7 +282,7 @@ export class RaiseAuthnProvider implements IAuthProvider {
 
     const signRespContent = await signResp.json();
 
-    console.log('Got signature from guardian', signRespContent);
+    console.log("Got signature from guardian", signRespContent);
 
     const gasLimit = await socialRecovery.estimateGas.initRecovery(
       {
@@ -287,7 +301,7 @@ export class RaiseAuthnProvider implements IAuthProvider {
           ergsPerPubdata: utils.DEFAULT_GAS_PER_PUBDATA_LIMIT,
           paymasterParams,
         },
-      },
+      }
     );
 
     const gasPrice = await this.provider.getGasPrice();
@@ -313,20 +327,23 @@ export class RaiseAuthnProvider implements IAuthProvider {
           ergsPerPubdata: utils.DEFAULT_GAS_PER_PUBDATA_LIMIT,
         },
         gasLimit,
-      },
+      }
     );
 
-    console.log('Recovery tx', tx);
+    console.log("Recovery tx", tx);
     const receipt = await tx.wait();
     const recoveryCode = receipt.events.find(
-      (event: any) => event.event == 'RecoveryInit',
+      (event: any) => event.event == "RecoveryInit"
     );
 
     const recoveryIdString = ethers.utils.toUtf8String(recoveryCode.args[3]);
 
-    console.log('Recovery code -> ', recoveryIdString);
+    console.log("Recovery code -> ", recoveryIdString);
 
-    defaultNonsensitiveStorage.storeObject(RECOVERY_CODE_PREFIX, { address, recoveryId: recoveryIdString });
+    defaultNonsensitiveStorage.storeObject(RECOVERY_CODE_PREFIX, {
+      address,
+      recoveryId: recoveryIdString,
+    });
 
     return [recoveryIdString, walletAddress];
   }
@@ -339,19 +356,19 @@ export class RaiseAuthnProvider implements IAuthProvider {
     address: string,
     email: string,
     guardianAddress: string,
-    signRequestId: string,
+    signRequestId: string
   ) {
     const wallet = zksync.Wallet.createRandom().connect(this.provider!); // Temp keypair, will sig the deploy transaction
 
     const paymasterParams = utils.getPaymasterParams(PAYMASTER_ADDRESS, {
-      type: 'General',
+      type: "General",
       innerInput: new Uint8Array(),
     });
 
     const accountFactory = new ethers.Contract(
       ACCOUNT_FACTORY_ADDRESS,
       AccountFactory,
-      wallet,
+      wallet
     );
 
     const emailHash = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(email));
@@ -359,19 +376,19 @@ export class RaiseAuthnProvider implements IAuthProvider {
     const [walletAddress, credentialId] =
       await accountFactory.getUserWalletInfo(emailHash, getDeviceId());
 
-    console.log('Wallet address -> ', walletAddress);
+    console.log("Wallet address -> ", walletAddress);
 
     const accountFacet = new ethers.Contract(
       walletAddress,
       AccountFacetABI,
-      wallet,
+      wallet
     );
 
     const signResp = await fetch(`/api/device_connect/sign`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
+        Accept: "application/json",
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         requestId: signRequestId,
@@ -388,7 +405,7 @@ export class RaiseAuthnProvider implements IAuthProvider {
 
     const signRespContent = await signResp.json();
 
-    console.log('Got signature from guardian', signRespContent);
+    console.log("Got signature from guardian", signRespContent);
 
     let tx = await accountFacet.connectDevice(
       {
@@ -407,20 +424,25 @@ export class RaiseAuthnProvider implements IAuthProvider {
           paymasterParams,
           ergsPerPubdata: utils.DEFAULT_GAS_PER_PUBDATA_LIMIT,
         },
-      },
+      }
     );
 
-    console.log('Connect tx', tx);
+    console.log("Connect tx", tx);
     const receipt = await tx.wait();
     const connectionCode = receipt.events.find(
-      (event: any) => event.event == 'DeviceConnectionInit',
+      (event: any) => event.event == "DeviceConnectionInit"
     );
 
-    const connectionIdString = ethers.utils.toUtf8String(connectionCode.args[1]);
+    const connectionIdString = ethers.utils.toUtf8String(
+      connectionCode.args[1]
+    );
 
-    console.log('Connection code -> ', connectionIdString);
+    console.log("Connection code -> ", connectionIdString);
 
-    defaultNonsensitiveStorage.storeObject(DEVICE_CONNECT_CODE_PREFIX, { address, recoveryId: connectionIdString });
+    defaultNonsensitiveStorage.storeObject(DEVICE_CONNECT_CODE_PREFIX, {
+      address,
+      recoveryId: connectionIdString,
+    });
 
     return [connectionIdString, walletAddress];
   }
@@ -430,10 +452,13 @@ export class RaiseAuthnProvider implements IAuthProvider {
    * @param isConnected Is session marked as connected
    */
   save(isConnected: boolean) {
-    defaultNonsensitiveStorage.storeValue('authType', 'RaiseAuthn');
-    defaultNonsensitiveStorage.storeValue('credentialId', this.credentialId);
-    defaultNonsensitiveStorage.storeValue('address', this.walletAddress);
-    defaultNonsensitiveStorage.storeValue('connected', isConnected ? 'true' : 'false');
+    defaultNonsensitiveStorage.storeValue("authType", "RaiseAuthn");
+    defaultNonsensitiveStorage.storeValue("credentialId", this.credentialId);
+    defaultNonsensitiveStorage.storeValue("address", this.walletAddress);
+    defaultNonsensitiveStorage.storeValue(
+      "connected",
+      isConnected ? "true" : "false"
+    );
   }
 
   /**
@@ -441,24 +466,23 @@ export class RaiseAuthnProvider implements IAuthProvider {
    * @returns Raiseauthn provider if restorable
    */
   static async restore(): Promise<RaiseAuthnProvider | null> {
-
-    const authType = defaultNonsensitiveStorage.getValue('authType');
-    const connected = defaultNonsensitiveStorage.getValue('connected');
-    const credentialId = defaultNonsensitiveStorage.getValue('credentialId');
-    const address = defaultNonsensitiveStorage.getValue('address');
+    const authType = defaultNonsensitiveStorage.getValue("authType");
+    const connected = defaultNonsensitiveStorage.getValue("connected");
+    const credentialId = defaultNonsensitiveStorage.getValue("credentialId");
+    const address = defaultNonsensitiveStorage.getValue("address");
 
     if (credentialId) {
       window.navigator.serviceWorker.controller!.postMessage({
-        command: 'setCurrentCredentialId',
+        command: "setCurrentCredentialId",
         credentialId,
       });
     }
 
     if (
-      connected != 'true' ||
+      connected != "true" ||
       !credentialId ||
       !address ||
-      authType != 'RaiseAuthn'
+      authType != "RaiseAuthn"
     )
       return null;
     return new RaiseAuthnProvider(credentialId, address);
@@ -468,7 +492,12 @@ export class RaiseAuthnProvider implements IAuthProvider {
    * Removes saved auth session
    */
   logout() {
-    defaultNonsensitiveStorage.removeAll('connected', 'credentialId', 'address', 'authType');
+    defaultNonsensitiveStorage.removeAll(
+      "connected",
+      "credentialId",
+      "address",
+      "authType"
+    );
   }
 }
 
@@ -477,28 +506,29 @@ export class RaiseAuthnProvider implements IAuthProvider {
  */
 export class RaiseAuthnProviderLoginManager
   extends EventTarget
-  implements ILoginManager {
+  implements ILoginManager
+{
   private _loginAttempt: Event = new Event(EVENTS.LOGIN_ATTEMPT);
   private _loginSuccess: Event = new Event(EVENTS.LOGIN_SUCCESS);
   private _loginFail: Event = new Event(EVENTS.LOGIN_FAIL);
 
   private _signupAttempt: Event = new Event(EVENTS.SIGNUP_ATTEMPT);
   private _signupKeypair: Event = new Event(
-    EVENTS.SIGNUP_CREDENTIAL_GENERATION,
+    EVENTS.SIGNUP_CREDENTIAL_GENERATION
   );
   private _signupCredentialCreationSuccess: Event = new Event(
-    EVENTS.SIGNUP_CREDENTIAL_SUCCESS,
+    EVENTS.SIGNUP_CREDENTIAL_SUCCESS
   );
   private _signupAccountAbstractionGenerated: Event = new Event(
-    EVENTS.SIGNUP_ACCOUNT_GENERATED,
+    EVENTS.SIGNUP_ACCOUNT_GENERATED
   );
 
   private _signupAccountVerified: Event = new Event(
-    EVENTS.SIGNUP_ACCOUNT_VERIFIED,
+    EVENTS.SIGNUP_ACCOUNT_VERIFIED
   );
 
   private _loginSignatureVerification: Event = new Event(
-    EVENTS.LOGIN_SIGNATURE_VERIFICATION,
+    EVENTS.LOGIN_SIGNATURE_VERIFICATION
   );
 
   private _signupSuccess: Event = new Event(EVENTS.SIGNUP_SUCCESS);
@@ -511,7 +541,7 @@ export class RaiseAuthnProviderLoginManager
   /**
    * Auth method name
    */
-  authMethodName = 'raiseauthn';
+  authMethodName = "raiseauthn";
 
   /**
    * Password is required to unlock raiseauthn wallet
@@ -529,7 +559,7 @@ export class RaiseAuthnProviderLoginManager
 
     this.dispatchEvent(this._loginAttempt);
     if (!email) {
-      throw new Error('No email');
+      throw new Error("No email");
     }
 
     const wallet = zksync.Wallet.createRandom().connect(provider); // Temp keypair, will sig the deploy transaction
@@ -537,25 +567,25 @@ export class RaiseAuthnProviderLoginManager
     const accountFactory = new ethers.Contract(
       ACCOUNT_FACTORY_ADDRESS,
       AccountFactory,
-      wallet,
+      wallet
     );
 
     const [walletAddress, credentialId] =
       await accountFactory.getUserWalletInfo(
         ethers.utils.keccak256(ethers.utils.toUtf8Bytes(email)),
-        getDeviceId(),
+        getDeviceId()
       );
     const decodedCredentialId = base64url.encode(
-      Buffer.from(ethers.utils.arrayify(credentialId)),
+      Buffer.from(ethers.utils.arrayify(credentialId))
     );
     if (walletAddress == NULL_ADDRESS) {
       this.dispatchEvent(this._loginFail);
-      throw new Error('User not registered');
+      throw new Error("User not registered");
     }
 
     const authProvider = new RaiseAuthnProvider(
       decodedCredentialId,
-      walletAddress,
+      walletAddress
     );
     this.dispatchEvent(this._loginSignatureVerification);
     return authProvider;
@@ -570,34 +600,35 @@ export class RaiseAuthnProviderLoginManager
     provider: Provider,
     email: string,
     signRequestId: string,
-    walletPassword?: string,
+    walletPassword?: string
   ): Promise<RaiseAuthnProvider> {
     // If recovery code saved, we'll drop it
     defaultNonsensitiveStorage.remove(RECOVERY_CODE_PREFIX);
 
     try {
       if (!email) {
-        throw new Error('No email');
+        throw new Error("No email");
       }
 
-      defaultNonsensitiveStorage.storeValue('lastEmail', email);
+      defaultNonsensitiveStorage.storeValue("lastEmail", email);
 
       const challenge = randomBytes(32);
 
-      let createCredentialDefaultArgs: CredentialCreationOptions = getCreateCredentialDefaultArgs(challenge, email);
+      let createCredentialDefaultArgs: CredentialCreationOptions =
+        getCreateCredentialDefaultArgs(challenge, email);
 
       this.dispatchEvent(this._signupKeypair);
 
       window.navigator.serviceWorker.controller!.postMessage({
-        command: 'createCredential',
+        command: "createCredential",
         args: createCredentialDefaultArgs,
         password: walletPassword,
       });
 
       const credentials = (await new Promise((resolve) => {
-        navigator.serviceWorker.addEventListener('message', (event) => {
+        navigator.serviceWorker.addEventListener("message", (event) => {
           /// @todo event.data.challenge null in some cases – investigate.
-          console.log('Listened event', event);
+          console.log("Listened event", event);
           if (
             event.data.challenge != null &&
             compareArrays(event.data.challenge, challenge)
@@ -607,7 +638,7 @@ export class RaiseAuthnProviderLoginManager
         });
       })) as any;
 
-      console.log('Event data', credentials);
+      console.log("Event data", credentials);
 
       const credentialId = credentials.id;
 
@@ -615,14 +646,14 @@ export class RaiseAuthnProviderLoginManager
 
       const abiCoder = new ethers.utils.AbiCoder();
       const ACCOUNT_DEPLOYMENT_SALT = ethers.utils.keccak256(
-        ethers.utils.toUtf8Bytes(email),
+        ethers.utils.toUtf8Bytes(email)
       );
 
       const wallet = zksync.Wallet.createRandom().connect(provider); // Temp keypair, will sig the deploy transaction
       const accountFactory = new ethers.Contract(
         ACCOUNT_FACTORY_ADDRESS,
         AccountFactory,
-        wallet,
+        wallet
       );
 
       const accountAddress = utils.create2Address(
@@ -631,13 +662,13 @@ export class RaiseAuthnProviderLoginManager
         ACCOUNT_DEPLOYMENT_SALT,
         abiCoder.encode(
           [
-            'bytes32',
-            'int256',
-            'bytes32',
-            'bytes32',
-            'address',
-            'uint32',
-            'address',
+            "bytes32",
+            "int256",
+            "bytes32",
+            "bytes32",
+            "address",
+            "uint32",
+            "address",
           ],
           [
             base64url.toBuffer(credentialId),
@@ -647,8 +678,8 @@ export class RaiseAuthnProviderLoginManager
             credentials.publicKey,
             getDeviceId(),
             RAISE_EMAIL_GUARDIAN_ADDRESS,
-          ],
-        ),
+          ]
+        )
       );
 
       const walletAddress = accountAddress;
@@ -660,7 +691,7 @@ export class RaiseAuthnProviderLoginManager
         credentials.publicKey,
         email,
         RAISE_EMAIL_GUARDIAN_ADDRESS,
-        signRequestId,
+        signRequestId
       );
 
       authProvider.walletAddress = newAccountAddress;
@@ -689,37 +720,38 @@ export class RaiseAuthnProviderLoginManager
     provider: Provider,
     email: string,
     signRequestId: string,
-    walletPassword?: string,
+    walletPassword?: string
   ): Promise<string[]> {
     try {
       if (!email) {
-        throw new Error('No email');
+        throw new Error("No email");
       }
 
-      defaultNonsensitiveStorage.storeValue('lastEmail', email);
+      defaultNonsensitiveStorage.storeValue("lastEmail", email);
 
       const challenge = randomBytes(32);
 
-      let createCredentialDefaultArgs: CredentialCreationOptions = getCreateCredentialDefaultArgs(challenge, email);
+      let createCredentialDefaultArgs: CredentialCreationOptions =
+        getCreateCredentialDefaultArgs(challenge, email);
 
       this.dispatchEvent(this._signupKeypair);
 
       window.navigator.serviceWorker.controller!.postMessage({
-        command: 'createCredential',
+        command: "createCredential",
         args: createCredentialDefaultArgs,
         password: walletPassword,
       });
 
       const credentials = (await new Promise((resolve) => {
-        navigator.serviceWorker.addEventListener('message', (event) => {
+        navigator.serviceWorker.addEventListener("message", (event) => {
           /// @todo event.data.challenge null in some cases – investigate
-          console.log('Lisened event', event);
+          console.log("Lisened event", event);
           console.log(
-            'Lisened event',
+            "Lisened event",
             event,
             compareArrays(event.data.challenge, challenge),
             event.data.challenge,
-            createCredentialDefaultArgs.publicKey!.challenge,
+            createCredentialDefaultArgs.publicKey!.challenge
           );
 
           if (compareArrays(event.data.challenge, challenge))
@@ -727,7 +759,7 @@ export class RaiseAuthnProviderLoginManager
         });
       })) as any;
 
-      console.log('Event data', credentials);
+      console.log("Event data", credentials);
 
       const credentialId = credentials.id;
 
@@ -735,14 +767,14 @@ export class RaiseAuthnProviderLoginManager
 
       const abiCoder = new ethers.utils.AbiCoder();
       const ACCOUNT_DEPLOYMENT_SALT = ethers.utils.keccak256(
-        ethers.utils.toUtf8Bytes(email),
+        ethers.utils.toUtf8Bytes(email)
       );
 
       const wallet = zksync.Wallet.createRandom().connect(provider); // Temp keypair, will sig the deploy transaction
       const accountFactory = new ethers.Contract(
         ACCOUNT_FACTORY_ADDRESS,
         AccountFactory,
-        wallet,
+        wallet
       );
 
       const accountAddress = utils.create2Address(
@@ -751,13 +783,13 @@ export class RaiseAuthnProviderLoginManager
         ACCOUNT_DEPLOYMENT_SALT,
         abiCoder.encode(
           [
-            'bytes32',
-            'int256',
-            'bytes32',
-            'bytes32',
-            'address',
-            'uint32',
-            'address',
+            "bytes32",
+            "int256",
+            "bytes32",
+            "bytes32",
+            "address",
+            "uint32",
+            "address",
           ],
           [
             base64url.toBuffer(credentialId),
@@ -767,8 +799,8 @@ export class RaiseAuthnProviderLoginManager
             credentials.publicKey,
             getDeviceId(),
             RAISE_EMAIL_GUARDIAN_ADDRESS,
-          ],
-        ),
+          ]
+        )
       );
 
       const walletAddress = accountAddress;
@@ -780,7 +812,7 @@ export class RaiseAuthnProviderLoginManager
         credentials.publicKey,
         email,
         RAISE_EMAIL_GUARDIAN_ADDRESS,
-        signRequestId,
+        signRequestId
       );
 
       this.dispatchEvent(this._signupSuccess);
@@ -795,7 +827,6 @@ export class RaiseAuthnProviderLoginManager
     }
   }
 
-
   // @todo update events to the actual for recovery UI
   /**
    *
@@ -807,37 +838,38 @@ export class RaiseAuthnProviderLoginManager
     provider: Provider,
     email: string,
     signRequestId: string,
-    walletPassword?: string,
+    walletPassword?: string
   ): Promise<string[]> {
     try {
       if (!email) {
-        throw new Error('No email');
+        throw new Error("No email");
       }
 
-      defaultNonsensitiveStorage.storeValue('lastEmail', email);
+      defaultNonsensitiveStorage.storeValue("lastEmail", email);
 
       const challenge = randomBytes(32);
 
-      let createCredentialDefaultArgs: CredentialCreationOptions = getCreateCredentialDefaultArgs(challenge, email);
+      let createCredentialDefaultArgs: CredentialCreationOptions =
+        getCreateCredentialDefaultArgs(challenge, email);
 
       this.dispatchEvent(this._signupKeypair);
 
       window.navigator.serviceWorker.controller!.postMessage({
-        command: 'createCredential',
+        command: "createCredential",
         args: createCredentialDefaultArgs,
         password: walletPassword,
       });
 
       const credentials = (await new Promise((resolve) => {
-        navigator.serviceWorker.addEventListener('message', (event) => {
+        navigator.serviceWorker.addEventListener("message", (event) => {
           /// @todo event.data.challenge null in some cases – investigate
-          console.log('Lisened event', event);
+          console.log("Lisened event", event);
           console.log(
-            'Lisened event',
+            "Lisened event",
             event,
             compareArrays(event.data.challenge, challenge),
             event.data.challenge,
-            createCredentialDefaultArgs.publicKey!.challenge,
+            createCredentialDefaultArgs.publicKey!.challenge
           );
 
           if (compareArrays(event.data.challenge, challenge))
@@ -845,7 +877,7 @@ export class RaiseAuthnProviderLoginManager
         });
       })) as any;
 
-      console.log('Event data', credentials);
+      console.log("Event data", credentials);
 
       const credentialId = credentials.id;
 
@@ -853,14 +885,14 @@ export class RaiseAuthnProviderLoginManager
 
       const abiCoder = new ethers.utils.AbiCoder();
       const ACCOUNT_DEPLOYMENT_SALT = ethers.utils.keccak256(
-        ethers.utils.toUtf8Bytes(email),
+        ethers.utils.toUtf8Bytes(email)
       );
 
       const wallet = zksync.Wallet.createRandom().connect(provider); // Temp keypair, will sig the deploy transaction
       const accountFactory = new ethers.Contract(
         ACCOUNT_FACTORY_ADDRESS,
         AccountFactory,
-        wallet,
+        wallet
       );
 
       const accountAddress = utils.create2Address(
@@ -869,13 +901,13 @@ export class RaiseAuthnProviderLoginManager
         ACCOUNT_DEPLOYMENT_SALT,
         abiCoder.encode(
           [
-            'bytes32',
-            'int256',
-            'bytes32',
-            'bytes32',
-            'address',
-            'uint32',
-            'address',
+            "bytes32",
+            "int256",
+            "bytes32",
+            "bytes32",
+            "address",
+            "uint32",
+            "address",
           ],
           [
             base64url.toBuffer(credentialId),
@@ -885,8 +917,8 @@ export class RaiseAuthnProviderLoginManager
             credentials.publicKey,
             getDeviceId(),
             RAISE_EMAIL_GUARDIAN_ADDRESS,
-          ],
-        ),
+          ]
+        )
       );
 
       const walletAddress = accountAddress;
@@ -894,12 +926,13 @@ export class RaiseAuthnProviderLoginManager
 
       const authProvider = new RaiseAuthnProvider(credentialId, walletAddress);
       // this.dispatchEvent(this._signupAccountVerified);
-      const [recoveryCode, addressToRecover] = await authProvider.connectNewDevice(
-        credentials.publicKey,
-        email,
-        RAISE_EMAIL_GUARDIAN_ADDRESS,
-        signRequestId,
-      );
+      const [recoveryCode, addressToRecover] =
+        await authProvider.connectNewDevice(
+          credentials.publicKey,
+          email,
+          RAISE_EMAIL_GUARDIAN_ADDRESS,
+          signRequestId
+        );
 
       this.dispatchEvent(this._signupSuccess);
       // wait 1sec for nicer UI

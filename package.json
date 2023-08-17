@@ -7,6 +7,7 @@
     "build": "tsc"
   },
   "peerDependencies": {
+    "base64url": "^3.0.1",
     "penpal": "6.2.2",
     "qs": "6.11.0",
     "wagmi": "0.10.11",

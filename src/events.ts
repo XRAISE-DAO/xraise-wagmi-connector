@@ -1,0 +1,15 @@
+export enum EVENTS {
+    LOGIN_ATTEMPT = 'login-attempt',
+    LOGIN_SIGNATURE_VERIFICATION = 'login-signature-verification',
+    LOGIN_SUCCESS = 'login-success',
+    LOGIN_FAIL = 'login-fail',
+    SIGNUP_ATTEMPT = 'signup-attempt',
+    SIGNUP_CREDENTIAL_GENERATION = 'signup-keypair-generation',
+    SIGNUP_CREDENTIAL_SUCCESS = 'signup-credential-success',
+    SIGNUP_CREDENTIAL_FAIL = 'signup-credential-fail',
+    SIGNUP_ACCOUNT_GENERATED = 'signup-account-generated',
+    SIGNUP_ACCOUNT_VERIFIED = 'signup-account-verified',
+    SIGNUP_ACCOUNT_CREATED = 'signup-account-created',
+    SIGNUP_SUCCESS = 'signup-success',
+    SIGNUP_FAIL = 'signup-fail',
+}

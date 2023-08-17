@@ -1,29 +1,24 @@
 {
   "files": ["src/index.ts"],
   "compilerOptions": {
-    "target": "es2015",
-    "module": "es2015",
-    "moduleResolution": "node",
-    "declaration": true,
-    "outDir": "./dist",
-    "noEmit": false,
+    "target": "es5",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
     "strict": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "strictBindCallApply": true,
-    "strictPropertyInitialization": true,
-    "noImplicitThis": true,
-    "alwaysStrict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedIndexedAccess": true,
-    "noImplicitOverride": true,
-    "noPropertyAccessFromIndexSignature": true,
-    "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true
-  }
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "incremental": true,
+    "outDir": "./dist",
+    "baseUrl": ".",
+    "paths": {
+      "@abis/*": ["abis/*"]
+    }
+  },
+  "exclude": ["node_modules", "abis"]
 }
