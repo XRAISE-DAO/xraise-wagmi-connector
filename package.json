@@ -1,0 +1,23 @@
+{
+  "name": "xraise-wagmi-connector",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "peerDependencies": {
+    "penpal": "6.2.2",
+    "qs": "6.11.0",
+    "wagmi": "0.10.11",
+    "cbor": "^8.1.0",
+    "zksync-web3": "^0.14.3"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/qs": "^6.9.7",
+    "typescript": "^5.1.6"
+  }
+}
