@@ -10,7 +10,7 @@ import { BigNumber, ethers, Signer } from "ethers";
 import { Bytes, Deferrable, getAddress } from "ethers/lib/utils.js";
 import type { Chain } from "@wagmi/core/chains";
 import type { Address } from "abitype";
-import { AppBridge, SessionCreationParams } from "./Bridge";
+import { AppBridge, SessionCreationParams } from "./AppBridge";
 import { Provider, types, utils, Wallet } from "zksync-web3";
 import { TransactionRequest } from "zksync-web3/build/src/types";
 import { Connector } from "wagmi";
