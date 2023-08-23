@@ -41,20 +41,33 @@ export interface ISession {
   userAccount: string;
 }
 
+export type WalletEnv = 'local' | 'testnet' | 'mainnet';
+
+interface AppBridgeConstructorParams {
+  walletEnv?: WalletEnv;
+}
+
 /**
  * The bridge on web3 website side. Connects to the keys holder, representative of the raise pay on foreign web3 website inside iframe
  */
 export class AppBridge {
-  url =
-    process.env.NEXT_PUBLIC_WALLET_ENV == 'local'
-      ? 'http://localhost:3000'
-      : `https://${process.env.NEXT_PUBLIC_WALLET_ENV}.xraise.io`;
+  url: string;
 
   connection: WalletApi | undefined;
   promise: Promise<WalletApi> | undefined;
   window: Window | undefined;
   transactionWindow: Window | undefined;
 
+  constructor(params?: AppBridgeConstructorParams) {
+    if (params) {
+      this.url =
+        params.walletEnv === 'local'
+          ? 'http://localhost:3000'
+          : `https://${params.walletEnv}.xraise.io`;
+    } else {
+      this.url = `https://wallet.xraise.io`;
+    }
+  }
   /**
    * Connects to iframe on our domain that holds domain-pinned webauthn auth, keypairs
    * Creates brige connection to key holder website
