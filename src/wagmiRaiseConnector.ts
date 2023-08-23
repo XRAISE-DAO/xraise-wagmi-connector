@@ -444,3 +444,11 @@ export class RaiseConnector extends Connector<
 export const defaultRaiseConnector = new RaiseConnector({
   chains: [zkSync],
 }) as any;
+
+export const buildCustomRaiseConnector = (walletEnv: WalletEnv) =>
+  new RaiseConnector({
+    chains: [zkSync],
+    options: {
+      walletEnv,
+    },
+  }) as any;
