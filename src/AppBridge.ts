@@ -1,14 +1,12 @@
-import { connectToChild } from "penpal";
-import qs from "qs";
-import { arrayify, Deferrable, hexlify } from "ethers/lib/utils.js";
+import { connectToChild } from 'penpal';
+import qs from 'qs';
+import { arrayify, Deferrable } from 'ethers/lib/utils.js';
 import {
   PaymasterParams,
   TransactionRequest,
-} from "zksync-web3/build/src/types";
-import { types } from "zksync-web3";
-import { serialize } from "zksync-web3/build/src/utils";
-
-const WALLET_URL = "https://dev.raisepay.io";
+} from 'zksync-web3/build/src/types';
+import { types } from 'zksync-web3';
+import { serialize } from 'zksync-web3/build/src/utils';
 
 export interface SessionCreationParams {
   allowedAddresses: string[];
@@ -22,10 +20,11 @@ interface WalletApi {
   getAddress(): Promise<string | null>;
   signTransaction(transaction: Deferrable<TransactionRequest>): Promise<string>;
   trySignUsingSession(
-    transaction: Deferrable<TransactionRequest>
+    transaction: Deferrable<TransactionRequest>,
   ): Promise<string>;
   createSession(params: SessionCreationParams): Promise<string>;
   approveSession(sessionPubKey: string): Promise<boolean>;
+  getLocalSessions(): Promise<ISession[]>;
 }
 
 /**
@@ -36,23 +35,25 @@ interface AppApi {
   onLogoutCompleted(): void;
 }
 
-interface AppBridgeConstructorParams {
-  walletUrl?: string;
+export interface ISession {
+  allowedAddresses: string[];
+  sessionAddress: string;
+  userAccount: string;
 }
 
 /**
  * The bridge on web3 website side. Connects to the keys holder, representative of the raise pay on foreign web3 website inside iframe
  */
 export class AppBridge {
-  url: string;
+  url =
+    process.env.NEXT_PUBLIC_WALLET_ENV == 'local'
+      ? 'http://localhost:3000'
+      : `https://${process.env.NEXT_PUBLIC_WALLET_ENV}.xraise.io`;
+
   connection: WalletApi | undefined;
   promise: Promise<WalletApi> | undefined;
   window: Window | undefined;
   transactionWindow: Window | undefined;
-
-  constructor(params?: AppBridgeConstructorParams) {
-    this.url = params?.walletUrl ?? WALLET_URL;
-  }
 
   /**
    * Connects to iframe on our domain that holds domain-pinned webauthn auth, keypairs
@@ -64,7 +65,7 @@ export class AppBridge {
   async connect(
     iframe: HTMLIFrameElement,
     onLoginCompleted: (address: string) => void,
-    onLogoutCompleted: () => void
+    onLogoutCompleted: () => void,
   ) {
     const connection = connectToChild<WalletApi>({
       iframe,
@@ -102,10 +103,10 @@ export class AppBridge {
         `${this.url}/wallet?${qs.stringify({
           origin: window.origin,
         })}&embedded=true&mode=login`,
-        "_blank",
+        '_blank',
         `height=650,width=400,top=${(window.screen.height - 650) / 2},left=${
           (window.screen.width - 400) / 2
-        }`
+        }`,
       )!;
     } else {
       this.window.focus();
@@ -128,10 +129,10 @@ export class AppBridge {
         `${this.url}/wallet?${qs.stringify({
           origin: window.origin,
         })}&embedded=true`,
-        "_blank",
+        '_blank',
         `height=650,width=400,top=${(window.screen.height - 650) / 2},left=${
           (window.screen.width - 400) / 2
-        }`
+        }`,
       )!;
 
       const this_ = this;
@@ -149,13 +150,13 @@ export class AppBridge {
    * Opens wallet transaction window. Ask to approve or reject transaction
    */
   async openTransactionWindow(
-    transaction: string
+    transaction: string,
   ): Promise<{ instantSignature?: string; paymasterParams?: PaymasterParams }> {
-    if (window.location.pathname == "/wallet") {
+    if (window.location.pathname == '/wallet') {
       document.dispatchEvent(
-        new CustomEvent<{ tx: string }>("new_tx", {
+        new CustomEvent<{ tx: string }>('new_tx', {
           detail: { tx: transaction },
-        })
+        }),
       );
 
       const { instantSignature, paymasterParams } = await new Promise<{
@@ -163,35 +164,35 @@ export class AppBridge {
         paymasterParams?: PaymasterParams;
       }>((resolve) => {
         const handleTxApproved = (event: Event) => {
-          console.log("Received event", event);
+          console.log('Received event', event);
           if ((event as CustomEvent).detail.paymasterAddress) {
             console.log(
-              "Got custom paymaster options",
-              (event as CustomEvent).detail.feeToken
+              'Got custom paymaster options',
+              (event as CustomEvent).detail.feeToken,
             );
           }
           if ((event as CustomEvent).detail.instantSignature) {
             console.log(
-              "Got instant signature",
-              (event as CustomEvent).detail.instantSignature
+              'Got instant signature',
+              (event as CustomEvent).detail.instantSignature,
             );
             console.log((event as CustomEvent).detail.instantSignature);
           }
-          document.removeEventListener("tx_approved", handleTxApproved);
+          document.removeEventListener('tx_approved', handleTxApproved);
           resolve({
             instantSignature: (event as CustomEvent).detail.instantSignature,
             paymasterParams: (event as CustomEvent).detail.paymasterAddress
               ? {
                   paymaster: (event as CustomEvent).detail.paymasterAddress,
                   paymasterInput: arrayify(
-                    (event as CustomEvent).detail.paymasterInput
+                    (event as CustomEvent).detail.paymasterInput,
                   ),
                 }
               : undefined,
           });
         };
 
-        document.addEventListener("tx_approved", handleTxApproved);
+        document.addEventListener('tx_approved', handleTxApproved);
       });
       return { instantSignature, paymasterParams };
     }
@@ -201,14 +202,14 @@ export class AppBridge {
         `${this.url}/wallet?mode=transaction&${qs.stringify({
           tx: transaction,
         })}&embedded=true`,
-        "_blank",
+        '_blank',
         `height=650,width=400,top=${(window.screen.height - 650) / 2},left=${
           (window.screen.width - 400) / 2
-        }`
+        }`,
       )!;
 
       if (this.transactionWindow == null) {
-        throw new Error("Window blocked");
+        throw new Error('Window blocked');
       }
 
       const this_ = this;
@@ -223,14 +224,14 @@ export class AppBridge {
         paymasterParams?: PaymasterParams;
       }>((resolve, reject) => {
         window.onmessage = function (e) {
-          if (e.data.from != "transactionView") return;
+          if (e.data.from != 'transactionView') return;
 
           if (e.data.instantSignature) {
-            console.log("Got instant signature");
+            console.log('Got instant signature');
             console.log(e.data.instantSignature);
           }
 
-          if (e.data.approveStatus == "approved") {
+          if (e.data.approveStatus == 'approved') {
             resolve({
               instantSignature: e.data.instantSignature,
               paymasterParams: e.data.paymasterAddress
@@ -241,14 +242,14 @@ export class AppBridge {
                 : undefined,
             });
           } else {
-            reject("Not approved");
+            reject('Not approved');
           }
         };
         // onload required because of onunload called while page prepared
         // https://stackoverflow.com/questions/7476660/why-does-window-open-onunload-function-not-work-as-i-expect
         this.transactionWindow!.onload = () => {
           this.transactionWindow!.onunload = () => {
-            reject("Not approved"); // closed
+            reject('Not approved'); // closed
           };
         };
       });
@@ -269,10 +270,10 @@ export class AppBridge {
     if (!this.transactionWindow || this.transactionWindow.closed) {
       this.transactionWindow = window.open(
         `${this.url}/wallet?mode=error_no_funds&embedded=true`,
-        "_blank",
+        '_blank',
         `height=650,width=400,top=${(window.screen.height - 650) / 2},left=${
           (window.screen.width - 400) / 2
-        }`
+        }`,
       )!;
 
       const this_ = this;
@@ -295,7 +296,7 @@ export class AppBridge {
 
     const address = await this.connection?.getAddress();
 
-    if (address != null && address != "0x") return;
+    if (address != null && address != '0x') return;
 
     this.openLoginWindow();
     this.connection?.login();
@@ -307,17 +308,18 @@ export class AppBridge {
    * @returns Signature of the tx hash
    */
   async signTransaction(
-    transaction: Deferrable<TransactionRequest>
+    transaction: Deferrable<TransactionRequest>,
   ): Promise<string> {
     try {
       return (await this.connection?.trySignUsingSession(transaction!))!;
     } catch (e) {
+      console.log('Failed to sign in background, no sessions', e);
       // Failed to sign in background, no sessions
     }
 
     const { instantSignature, paymasterParams } =
       await this.openTransactionWindow(
-        serialize(transaction as TransactionRequest)
+        serialize(transaction as TransactionRequest),
       );
 
     (transaction.customData as types.Eip712Meta).paymasterParams =
@@ -354,5 +356,13 @@ export class AppBridge {
    */
   async getAddress(): Promise<string | null> {
     return (await this.connection?.getAddress()) || null;
+  }
+
+  /**
+   * Requests sessions stored on client
+   * @returns Stored client sessions
+   */
+  async getLocalSessions(): Promise<ISession[] | null> {
+    return (await this.connection?.getLocalSessions()) || null;
   }
 }

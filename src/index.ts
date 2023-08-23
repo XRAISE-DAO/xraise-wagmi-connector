@@ -1,26 +1,29 @@
-"use client";
+'use client';
 
-import type { ProviderRpcError } from "@wagmi/core";
+import type { ProviderRpcError } from '@wagmi/core';
 import {
   ConnectorNotFoundError,
   getClient,
   normalizeChainId,
-} from "@wagmi/core";
-import { BigNumber, ethers, Signer } from "ethers";
-import { Bytes, Deferrable, getAddress } from "ethers/lib/utils.js";
-import type { Chain } from "@wagmi/core/chains";
-import type { Address } from "abitype";
-import { AppBridge, SessionCreationParams } from "./AppBridge";
-import { Provider, types, utils, Wallet } from "zksync-web3";
-import { TransactionRequest } from "zksync-web3/build/src/types";
-import { Connector } from "wagmi";
+} from '@wagmi/core';
+import { BigNumber, ethers, Signer } from 'ethers';
+import { Bytes, Deferrable, getAddress } from 'ethers/lib/utils.js';
+import type { Chain } from '@wagmi/core/chains';
+import type { Address } from 'abitype';
+import { AppBridge, ISession, SessionCreationParams } from './AppBridge';
+import { Provider, types, utils, Wallet } from 'zksync-web3';
+import { TransactionRequest } from 'zksync-web3/build/src/types';
+import { zkSync } from './utils';
+import { Connector } from 'wagmi';
 import {
   IWalletPaymaster,
   PAYMASTER_ADJUSTED_GASLIMIT,
   RaisePaymaster,
   RaiseSubsidizingPaymaster,
-} from "./WalletPaymasters";
-import { sleep, zkSync, zkSyncProvider } from "./utils";
+} from './WalletPaymasters';
+import { zkSyncProvider } from './utils';
+import { sleep } from './utils';
+import { ZKSYNC_GAS_PRICE } from './constants/index';
 
 export type ConnectorData<Provider = any> = {
   account?: Address;
@@ -29,8 +32,6 @@ export type ConnectorData<Provider = any> = {
 };
 
 export type RaiseConnectorOptions = {
-  /** Provide your own wallet url  */
-  walletUrl?: string;
   /** Name of connector */
   name?: string | ((detectedName: string | string[]) => string);
   /**
@@ -39,7 +40,7 @@ export type RaiseConnectorOptions = {
    * @default
    * () => typeof window !== 'undefined' ? window.ethereum : undefined
    */
-  getProvider?: () => Window["ethereum"] | undefined;
+  getProvider?: () => Window['ethereum'] | undefined;
   /**
    * MetaMask and other injected providers do not support programmatic disconnect.
    * This flag simulates the disconnect behavior by keeping track of connection status in storage. See [GitHub issue](https://github.com/MetaMask/metamask-extension/issues/10353) for more info.
@@ -61,7 +62,7 @@ export class RaiseSigner extends Signer {
     paymasters: IWalletPaymaster[] = [
       new RaisePaymaster(),
       new RaiseSubsidizingPaymaster(),
-    ]
+    ],
   ) {
     super();
     this.address = address;
@@ -78,24 +79,25 @@ export class RaiseSigner extends Signer {
   }
 
   _fail(message: string, operation: string): Promise<any> {
-    console.log("fail", message, operation);
+    console.log('fail', message, operation);
     return (async () => {})();
   }
 
   signMessage(message: Bytes | string): Promise<string> {
-    console.log("Signing");
-    return (async () => "0x")();
+    console.log('Signing');
+    return (async () => '0x')();
+    return this._fail('RaiseSigner cannot sign messages', 'signMessage');
   }
 
   async signTransaction(
-    transaction: Deferrable<TransactionRequest>
+    transaction: Deferrable<TransactionRequest>,
   ): Promise<string> {
     const paymasterId = (transaction?.customData as any)?.paymasterId;
-    let paymaster = this.paymasters[paymasterId || "raise"];
+    let paymaster = this.paymasters[paymasterId || 'raise'];
 
-    const { paymasterParams } = await paymaster!.getPaymasterParams(
+    const { paymasterParams } = await paymaster.getPaymasterParams(
       this.provider as Provider,
-      transaction
+      transaction,
     );
 
     transaction.customData = {
@@ -110,27 +112,28 @@ export class RaiseSigner extends Signer {
     }
 
     transaction.gasLimit = (transaction.gasLimit as BigNumber).add(
-      PAYMASTER_ADJUSTED_GASLIMIT
+      PAYMASTER_ADJUSTED_GASLIMIT,
     );
-
+    transaction.maxFeePerGas = ZKSYNC_GAS_PRICE;
+    transaction.maxPriorityFeePerGas = ZKSYNC_GAS_PRICE;
     transaction.type = 113; // Todo: investigate why transaction type sets as 2 and only for raiseauthn connector. Consider add if (!transaction.type) then
 
     if (!transaction.value) transaction.value = ethers.BigNumber.from(0);
-    if (!transaction.data) transaction.data = "0x";
+    if (!transaction.data) transaction.data = '0x';
 
     return await this.bridge.signTransaction(transaction);
   }
 
   connect(provider: Provider): RaiseSigner {
-    return new RaiseSigner(this.address!, provider, this.bridge);
+    return new RaiseSigner(this.address!, provider, new AppBridge());
   }
 }
 
 type ConnectorOptions = RaiseConnectorOptions &
-  Required<Pick<RaiseConnectorOptions, "getProvider">>;
+  Required<Pick<RaiseConnectorOptions, 'getProvider'>>;
 
 export class RaiseConnector extends Connector<
-  Window["ethereum"],
+  Window['ethereum'],
   ConnectorOptions,
   RaiseSigner
 > {
@@ -138,47 +141,47 @@ export class RaiseConnector extends Connector<
   readonly name: string;
   readonly ready: boolean;
 
-  _provider?: Window["ethereum"];
+  _provider?: Window['ethereum'];
   _switchingChains?: boolean;
 
-  bridge: AppBridge;
+  bridge = new AppBridge();
 
   iframe: HTMLIFrameElement | null = null;
 
-  protected raiseAddress = "raise.address";
+  protected raiseAddress = 'raise.address';
 
   private updateIframe() {
-    if (typeof window === "undefined") {
+    if (typeof window === 'undefined') {
       return; // server side
     }
 
     let iframe = this.iframe;
 
     if (iframe == null) {
-      iframe = window.document.createElement("iframe");
-      iframe.id = "raise-bridge";
-      iframe.src = "/bridge";
-      iframe.style.display = "none";
-      iframe.sandbox.add("allow-scripts");
-      iframe.sandbox.add("allow-same-origin");
-      iframe.sandbox.add("allow-popups");
+      iframe = window.document.createElement('iframe');
+      iframe.id = 'raise-bridge';
+      iframe.src = '/bridge';
+      iframe.style.display = 'none';
+      iframe.sandbox.add('allow-scripts');
+      iframe.sandbox.add('allow-same-origin');
+      iframe.sandbox.add('allow-popups');
 
-      iframe.allow = "publickey-credentials-get *";
+      iframe.allow = 'publickey-credentials-get *';
 
       this.iframe = iframe;
     }
 
     if (!!document.hasStorageAccess) {
-      iframe!.sandbox.add("allow-storage-access-by-user-activation");
+      iframe!.sandbox.add('allow-storage-access-by-user-activation');
     }
 
     if (
-      document.readyState === "complete" ||
-      document.readyState === "interactive"
+      document.readyState === 'complete' ||
+      document.readyState === 'interactive'
     ) {
       document.body.appendChild(iframe!);
     } else {
-      document.addEventListener("DOMContentLoaded", () => {
+      document.addEventListener('DOMContentLoaded', () => {
         document.body.appendChild(iframe!);
       });
     }
@@ -201,27 +204,21 @@ export class RaiseConnector extends Connector<
 
     super({ chains, options: options as any }); // TODO
 
-    if (options?.walletUrl) {
-      this.bridge = new AppBridge({ walletUrl: options.walletUrl });
-    } else {
-      this.bridge = new AppBridge();
-    }
-
     const provider = options.getProvider();
     Object.assign(provider as object, { chains });
     (provider as any).chains = chains;
 
-    if (typeof options.name === "string") this.name = options.name;
+    if (typeof options.name === 'string') this.name = options.name;
     else if (provider) {
-      const detectedName = "Raise";
+      const detectedName = 'Raise';
       if (options.name) this.name = options.name(detectedName);
       else {
-        if (typeof detectedName === "string") this.name = detectedName;
+        if (typeof detectedName === 'string') this.name = detectedName;
         else this.name = detectedName[0] as string;
       }
-    } else this.name = "Raise";
+    } else this.name = 'Raise';
 
-    this.id = "raise";
+    this.id = 'raise';
     this.ready = !!provider;
 
     sleep(100).then(() => {
@@ -244,15 +241,15 @@ export class RaiseConnector extends Connector<
     const handleWalletEvent = (event: MessageEvent<any>) => {
       if (
         event.data.source &&
-        event.data.source == "raise_wallet" &&
-        event.data.event == "logged_out"
+        event.data.source == 'raise_wallet' &&
+        event.data.event == 'logged_out'
       ) {
-        window.addEventListener("message", handleWalletEvent);
+        window.addEventListener('message', handleWalletEvent);
         this_.disconnect();
       }
     };
 
-    window.addEventListener("message", handleWalletEvent);
+    window.addEventListener('message', handleWalletEvent);
 
     const address = await new Promise((resolve, reject) => {
       bridge
@@ -260,30 +257,30 @@ export class RaiseConnector extends Connector<
           this.iframe!,
           () => {
             bridge.getAddress().then((addr) => {
-              resolve(addr ?? "0x");
+              resolve(addr ?? '0x');
             });
           },
           () => {
             this.onDisconnect();
-          }
+          },
         )
         .then(() => bridge.login());
 
       const handleWalletEvent = (event: MessageEvent<any>) => {
         if (
           event.data.source &&
-          event.data.source == "raise_wallet" &&
-          event.data.event == "logged_in"
+          event.data.source == 'raise_wallet' &&
+          event.data.event == 'logged_in'
         ) {
-          console.log("Received address", event.data.address);
+          // console.log('Received address', event.data.address);
           bridge.connection?.login().then(() => {
-            window.removeEventListener("message", handleWalletEvent, false);
+            window.removeEventListener('message', handleWalletEvent, false);
             resolve(event.data.address);
           });
         }
       };
 
-      window.addEventListener("message", handleWalletEvent);
+      window.addEventListener('message', handleWalletEvent);
     });
 
     getClient().storage?.setItem(this.raiseAddress, address);
@@ -299,16 +296,16 @@ export class RaiseConnector extends Connector<
     const provider = await this.getProvider();
     if (!provider?.removeListener) return;
 
-    provider.removeListener("accountsChanged", this.onAccountsChanged);
-    provider.removeListener("chainChanged", this.onChainChanged);
-    provider.removeListener("disconnect", this.onDisconnect);
+    provider.removeListener('accountsChanged', this.onAccountsChanged);
+    provider.removeListener('chainChanged', this.onChainChanged);
+    provider.removeListener('disconnect', this.onDisconnect);
 
     getClient().storage?.removeItem(this.raiseAddress);
 
     if (window.opener) {
       window.opener.postMessage(
-        { source: "raise_wallet", event: "logged_out" },
-        "*"
+        { source: 'raise_wallet', event: 'logged_out' },
+        '*',
       );
       window.close();
     }
@@ -358,12 +355,16 @@ export class RaiseConnector extends Connector<
     return isAuthorized;
   }
 
-  override async switchChain(chainId: number): Promise<Chain> {
-    console.log("Not implemented");
+  async getLocalSessions(): Promise<ISession[] | null> {
+    return await this.bridge.getLocalSessions();
+  }
+
+  async switchChain(chainId: number): Promise<Chain> {
+    console.log('Not implemented');
     return {} as any;
   }
 
-  override async watchAsset({
+  async watchAsset({
     address,
     decimals = 18,
     image,
@@ -374,13 +375,13 @@ export class RaiseConnector extends Connector<
     image?: string;
     symbol: string;
   }) {
-    console.log("Watch assets requested", address, decimals, image, symbol);
+    console.log('Watch assets requested', address, decimals, image, symbol);
     const provider = await this.getProvider();
     if (!provider) throw new ConnectorNotFoundError();
     return provider.request({
-      method: "wallet_watchAsset",
+      method: 'wallet_watchAsset',
       params: {
-        type: "ERC20",
+        type: 'ERC20',
         options: {
           address,
           decimals,
@@ -398,14 +399,14 @@ export class RaiseConnector extends Connector<
 
   async approveSession(sessionPubKey: string): Promise<boolean> {
     const sessionPublicKey = await this.bridge.approveSession(sessionPubKey)!;
-    console.log("Approved session", sessionPubKey);
+    console.log('Approved session', sessionPubKey);
     return sessionPublicKey;
   }
 
   protected onAccountsChanged = (accounts: string[]) => {
-    if (accounts.length === 0) this.emit("disconnect");
+    if (accounts.length === 0) this.emit('disconnect');
     else
-      this.emit("change", {
+      this.emit('change', {
         account: getAddress(accounts[0] as string),
       });
   };
@@ -413,11 +414,11 @@ export class RaiseConnector extends Connector<
   protected onChainChanged = (chainId: number | string) => {
     const id = normalizeChainId(chainId);
     const unsupported = this.isChainUnsupported(id);
-    this.emit("change", { chain: { id, unsupported } });
+    this.emit('change', { chain: { id, unsupported } });
   };
 
   protected onDisconnect = () => {
-    this.emit("disconnect");
+    this.emit('disconnect');
     // Remove shim signalling wallet is disconnected
     getClient().storage?.removeItem(this.raiseAddress);
   };
@@ -430,11 +431,3 @@ export class RaiseConnector extends Connector<
 export const defaultRaiseConnector = new RaiseConnector({
   chains: [zkSync],
 }) as any;
-
-export const buildCustomRaiseConnector = (walletUrl: string) =>
-  new RaiseConnector({
-    chains: [zkSync],
-    options: {
-      walletUrl,
-    },
-  }) as any;

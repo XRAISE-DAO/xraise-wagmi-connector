@@ -1,3 +1,4 @@
+import { ServiceWorkerApi } from '../platform_support/ServiceWorkerApi';
 import { ethers } from 'ethers';
 /**
  * Platform auth provider. Account abstracion allows to use different auth mechanisms. This interface abstracts one supported auth mechanism
@@ -16,6 +17,10 @@ export interface IAuthProvider {
    */
   isPasswordRequired: boolean;
   /**
+   * Service worker api if communucation with service worker is required
+   */
+  serviceWorkerApi: ServiceWorkerApi | null;
+  /**
    * Auth provider can sign transactions
    * @param txHash hash to sign
    */
@@ -33,5 +38,4 @@ export interface IAuthProvider {
    * Removes saved auth provider from browser
    */
   logout(): void;
-  
 }

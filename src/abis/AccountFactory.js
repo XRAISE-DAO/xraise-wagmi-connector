@@ -1,398 +1,387 @@
 export const AccountFactory = [
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "bytes32",
-        "name": "_aaBytecodeHash",
-        "type": "bytes32"
+        internalType: 'bytes32',
+        name: '_aaBytecodeHash',
+        type: 'bytes32',
       },
       {
-        "internalType": "address[]",
-        "name": "allowedGuardians_",
-        "type": "address[]"
+        internalType: 'address[]',
+        name: 'allowedGuardians_',
+        type: 'address[]',
       },
       {
-        "internalType": "address",
-        "name": "diamondCutFacet_",
-        "type": "address"
+        internalType: 'address',
+        name: 'updater_',
+        type: 'address',
       },
       {
-        "internalType": "address",
-        "name": "diamondInit_",
-        "type": "address"
+        internalType: 'address',
+        name: 'notifier_',
+        type: 'address',
       },
-      {
-        "internalType": "address",
-        "name": "updater_",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "notifier_",
-        "type": "address"
-      }
     ],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
+    stateMutability: 'nonpayable',
+    type: 'constructor',
   },
   {
-    "anonymous": false,
-    "inputs": [
+    anonymous: false,
+    inputs: [
       {
-        "indexed": false,
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      }
+        indexed: false,
+        internalType: 'address',
+        name: 'account',
+        type: 'address',
+      },
     ],
-    "name": "AccountCreated",
-    "type": "event"
+    name: 'AccountCreated',
+    type: 'event',
   },
   {
-    "anonymous": false,
-    "inputs": [
+    anonymous: false,
+    inputs: [
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "guardian",
-        "type": "address"
+        indexed: true,
+        internalType: 'address',
+        name: 'guardian',
+        type: 'address',
       },
       {
-        "indexed": false,
-        "internalType": "bool",
-        "name": "isAllowed",
-        "type": "bool"
-      }
+        indexed: false,
+        internalType: 'bool',
+        name: 'isAllowed',
+        type: 'bool',
+      },
     ],
-    "name": "GuardianStatusSet",
-    "type": "event"
+    name: 'GuardianStatusSet',
+    type: 'event',
   },
   {
-    "anonymous": false,
-    "inputs": [
+    anonymous: false,
+    inputs: [
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "previousOwner",
-        "type": "address"
+        indexed: true,
+        internalType: 'address',
+        name: 'previousOwner',
+        type: 'address',
       },
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "newOwner",
-        "type": "address"
-      }
+        indexed: true,
+        internalType: 'address',
+        name: 'newOwner',
+        type: 'address',
+      },
     ],
-    "name": "OwnershipTransferred",
-    "type": "event"
+    name: 'OwnershipTransferred',
+    type: 'event',
   },
   {
-    "inputs": [],
-    "name": "aaBytecodeHash",
-    "outputs": [
+    inputs: [],
+    name: 'aaBytecodeHash',
+    outputs: [
       {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
+        internalType: 'bytes32',
+        name: '',
+        type: 'bytes32',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
+        internalType: 'address',
+        name: '',
+        type: 'address',
+      },
     ],
-    "name": "allowedGuardians",
-    "outputs": [
+    name: 'allowedGuardians',
+    outputs: [
       {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
+        internalType: 'bool',
+        name: '',
+        type: 'bool',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "bytes32",
-        "name": "currentEmailHash",
-        "type": "bytes32"
+        internalType: 'bytes32',
+        name: 'currentEmailHash',
+        type: 'bytes32',
       },
       {
-        "internalType": "bytes32",
-        "name": "newEmailHash",
-        "type": "bytes32"
-      }
+        internalType: 'bytes32',
+        name: 'newEmailHash',
+        type: 'bytes32',
+      },
     ],
-    "name": "changeEmailHash",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: 'changeEmailHash',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "components": [
+        components: [
           {
-            "internalType": "bytes32",
-            "name": "credentialId",
-            "type": "bytes32"
+            internalType: 'bytes32',
+            name: 'credentialId',
+            type: 'bytes32',
           },
           {
-            "internalType": "bytes32",
-            "name": "publicKeyX",
-            "type": "bytes32"
+            internalType: 'bytes32',
+            name: 'credentialIdSlot2',
+            type: 'bytes32',
           },
           {
-            "internalType": "bytes32",
-            "name": "publicKeyY",
-            "type": "bytes32"
+            internalType: 'bytes32',
+            name: 'publicKeyX',
+            type: 'bytes32',
           },
           {
-            "internalType": "address",
-            "name": "publicAddress",
-            "type": "address"
+            internalType: 'bytes32',
+            name: 'publicKeyY',
+            type: 'bytes32',
           },
           {
-            "internalType": "int32",
-            "name": "algoId",
-            "type": "int32"
+            internalType: 'address',
+            name: 'publicAddress',
+            type: 'address',
           },
           {
-            "internalType": "uint32",
-            "name": "deviceId",
-            "type": "uint32"
-          }
+            internalType: 'int32',
+            name: 'algoId',
+            type: 'int32',
+          },
+          {
+            internalType: 'uint32',
+            name: 'deviceId',
+            type: 'uint32',
+          },
+          {
+            internalType: 'bytes4',
+            name: 'credentialIdCarry',
+            type: 'bytes4',
+          },
         ],
-        "internalType": "struct LoginInfo",
-        "name": "loginInfo_",
-        "type": "tuple"
+        internalType: 'struct LoginInfo',
+        name: 'loginInfo_',
+        type: 'tuple',
       },
       {
-        "internalType": "bytes32",
-        "name": "emailHash",
-        "type": "bytes32"
+        internalType: 'bytes32',
+        name: 'emailHash',
+        type: 'bytes32',
       },
       {
-        "internalType": "address",
-        "name": "emailGuardian",
-        "type": "address"
+        internalType: 'address',
+        name: 'emailGuardian',
+        type: 'address',
       },
       {
-        "internalType": "bytes",
-        "name": "signature",
-        "type": "bytes"
+        internalType: 'bytes',
+        name: 'signature',
+        type: 'bytes',
       },
       {
-        "internalType": "uint256",
-        "name": "signatureExpiresAt",
-        "type": "uint256"
-      }
+        internalType: 'uint256',
+        name: 'signatureExpiresAt',
+        type: 'uint256',
+      },
     ],
-    "name": "deployAccount",
-    "outputs": [
+    name: 'deployAccount',
+    outputs: [
       {
-        "internalType": "address",
-        "name": "accountAddress",
-        "type": "address"
-      }
+        internalType: 'address',
+        name: 'accountAddress',
+        type: 'address',
+      },
     ],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "inputs": [],
-    "name": "diamondCutFacet",
-    "outputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "diamondInit",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "emailHash",
-        "type": "bytes32"
+        internalType: 'bytes32',
+        name: 'emailHash',
+        type: 'bytes32',
       },
       {
-        "internalType": "uint32",
-        "name": "deviceId",
-        "type": "uint32"
-      }
+        internalType: 'uint32',
+        name: 'deviceId',
+        type: 'uint32',
+      },
     ],
-    "name": "getUserWalletInfo",
-    "outputs": [
+    name: 'getUserWalletInfo',
+    outputs: [
       {
-        "internalType": "address",
-        "name": "walletAddress",
-        "type": "address"
+        internalType: 'address',
+        name: 'walletAddress',
+        type: 'address',
       },
       {
-        "internalType": "bytes32",
-        "name": "credentialId",
-        "type": "bytes32"
+        internalType: 'bytes32',
+        name: 'credentialId',
+        type: 'bytes32',
       },
       {
-        "internalType": "bool",
-        "name": "inRecovery",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "name": "isDeployedByFactory",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address[]",
-        "name": "guardians",
-        "type": "address[]"
+        internalType: 'bytes32',
+        name: 'credentialIdSlot2',
+        type: 'bytes32',
       },
       {
-        "internalType": "bool",
-        "name": "isAllowed",
-        "type": "bool"
-      }
+        internalType: 'bytes32',
+        name: 'credentialIdCarry',
+        type: 'bytes32',
+      },
+      {
+        internalType: 'bool',
+        name: 'inRecovery',
+        type: 'bool',
+      },
+      {
+        internalType: 'uint32[]',
+        name: 'devices',
+        type: 'uint32[]',
+      },
     ],
-    "name": "manageAllowedGuardians",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [],
-    "name": "notifier",
-    "outputs": [
+    inputs: [
       {
-        "internalType": "contract Notifier",
-        "name": "",
-        "type": "address"
-      }
+        internalType: 'address',
+        name: '',
+        type: 'address',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    name: 'isDeployedByFactory',
+    outputs: [
+      {
+        internalType: 'bool',
+        name: '',
+        type: 'bool',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [],
-    "name": "owner",
-    "outputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
+        internalType: 'address[]',
+        name: 'guardians',
+        type: 'address[]',
+      },
+      {
+        internalType: 'bool',
+        name: 'isAllowed',
+        type: 'bool',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    name: 'manageAllowedGuardians',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "inputs": [],
-    "name": "renounceOwnership",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    inputs: [],
+    name: 'notifier',
+    outputs: [
+      {
+        internalType: 'contract Notifier',
+        name: '',
+        type: 'address',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [],
+    name: 'owner',
+    outputs: [
       {
-        "internalType": "address",
-        "name": "newNotifier",
-        "type": "address"
-      }
+        internalType: 'address',
+        name: '',
+        type: 'address',
+      },
     ],
-    "name": "setNotifier",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "newOwner",
-        "type": "address"
-      }
-    ],
-    "name": "transferOwnership",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    inputs: [],
+    name: 'renounceOwnership',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "inputs": [],
-    "name": "updater",
-    "outputs": [
+    inputs: [
       {
-        "internalType": "contract AccountUpdater",
-        "name": "",
-        "type": "address"
-      }
+        internalType: 'address',
+        name: 'newNotifier',
+        type: 'address',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    name: 'setNotifier',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
+        internalType: 'address',
+        name: 'newOwner',
+        type: 'address',
+      },
     ],
-    "name": "walletAddresses",
-    "outputs": [
+    name: 'transferOwnership',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'updater',
+    outputs: [
       {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
+        internalType: 'contract AccountUpdater',
+        name: '',
+        type: 'address',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
-  }
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'bytes32',
+        name: '',
+        type: 'bytes32',
+      },
+    ],
+    name: 'walletAddresses',
+    outputs: [
+      {
+        internalType: 'address',
+        name: '',
+        type: 'address',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
 ];

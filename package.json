@@ -10,6 +10,12 @@
   "files": [
     "build"
   ],
+  "prettier": {
+    "arrowParens": "always",
+    "semi": true,
+    "trailingComma": "all",
+    "singleQuote": true
+  },
   "peerDependencies": {
     "base64url": "^3.0.1",
     "cbor": "^8.1.0",

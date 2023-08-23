@@ -64,5 +64,5 @@ export interface ILoginManager extends EventTarget {
     email: string,
     signRequestId: string,
     walletPassword?: string,
-  ): Promise<string[]>
+  ): Promise<string[]>;
 }

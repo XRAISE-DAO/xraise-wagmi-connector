@@ -1,8 +1,8 @@
-import { WebAuthnProvider } from "../platform_authenticator/WebAuthnProvider";
+import { WebAuthnProvider } from '../platform_authenticator/WebAuthnProvider';
 import {
   ServiceWorkerSupportStatus,
   serviceWorkerSupportStatus,
-} from "./detections";
+} from './detections';
 
 /**
  * Communicator with service worker api. Used as sensitive info storage for RaiseAuthn
@@ -14,6 +14,7 @@ export class ServiceWorkerApi {
   onDecryptionStarted: () => void = () => {};
   onWalletDecryptionEnded: () => void = () => {};
   onWalletDecryptionFailed: () => void = () => {};
+  onWalletDecryptionPercentChanged: (percent: number) => void = (percent) => {};
 
   setOnDecryptionStarted(onDecryptionStarted: () => void) {
     this.onDecryptionStarted = onDecryptionStarted;
@@ -27,32 +28,55 @@ export class ServiceWorkerApi {
     this.onWalletDecryptionFailed = onDecryptionFailed;
   }
 
-  async connectRaiseauthn(): Promise<boolean> {
+  setOnWalletDecryptionPercentChanged(
+    onDecryptionPercentChanged: (percent: number) => void,
+  ) {
+    this.onWalletDecryptionPercentChanged = onDecryptionPercentChanged;
+  }
+
+  async connectRaiseauthn(): Promise<{
+    isWalletEncrypted: boolean;
+    isWalletSaved: boolean;
+  }> {
     if (WebAuthnProvider.restore() != null)
-      return new Promise<boolean>((resolve) => resolve(false)); // No decyption required if we use webauthn
+      return new Promise<{
+        isWalletEncrypted: boolean;
+        isWalletSaved: boolean;
+      }>((resolve) =>
+        resolve({ isWalletEncrypted: false, isWalletSaved: false }),
+      ); // No decyption required if we use webauthn
 
-    const promise = new Promise<boolean>((resolve) => {
-      navigator.serviceWorker.addEventListener("message", (event) => {
-        console.log("Message from worker", event);
+    const promise = new Promise<{
+      isWalletEncrypted: boolean;
+      isWalletSaved: boolean;
+    }>((resolve) => {
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        console.log('Message from worker', event);
 
-        if (event.data.requestType == "isWalletEncrypted")
-          resolve(event.data.status as boolean);
+        if (event.data.requestType == 'isWalletEncrypted')
+          resolve({
+            isWalletEncrypted: event.data.status as boolean,
+            isWalletSaved: event.data.isWalletSaved as boolean,
+          });
 
-        if (event.data.requestType == "get") {
-          if (event.data.status == "walletDecryptionStarted")
+        if (event.data.requestType == 'get') {
+          if (event.data.status == 'walletDecryptionStarted')
             this.onDecryptionStarted();
 
-          if (event.data.status == "walletDecryptionEnded")
+          if (event.data.status == 'walletDecryptionEnded')
             this.onWalletDecryptionEnded();
 
-          if (event.data.status == "walletDecryptionFailed")
+          if (event.data.status == 'walletDecryptionFailed')
             this.onWalletDecryptionFailed();
+
+          if (event.data.status == 'decryptionPercentChanged')
+            this.onWalletDecryptionPercentChanged(event.data.percent);
         }
       });
     });
 
     window.navigator.serviceWorker.controller!.postMessage({
-      command: "isWalletEncrypted",
+      command: 'isWalletEncrypted',
     });
 
     return promise;
@@ -60,8 +84,15 @@ export class ServiceWorkerApi {
 
   decryptWallet(password: string) {
     window.navigator.serviceWorker.controller!.postMessage({
-      command: "decryptWallet",
+      command: 'decryptWallet',
       password,
+    });
+  }
+
+  encryptWallets() {
+    // Todo: make this function async and wait for response from worker
+    window.navigator.serviceWorker.controller!.postMessage({
+      command: 'encryptWallets',
     });
   }
 
@@ -70,7 +101,7 @@ export class ServiceWorkerApi {
       // If we use service worker to handle and check approve later.
       // Used if service worker is supported to make it work on Safari
       window.navigator.serviceWorker.controller?.postMessage({
-        command: "setApprove",
+        command: 'setApprove',
         txHash: txHash,
         isApproved: decision,
       });
