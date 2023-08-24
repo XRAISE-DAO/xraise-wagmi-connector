@@ -1,5 +1,5 @@
 import { BigNumber } from 'ethers';
-import { SupportedChainId } from './chains';
+import { SupportedChainId } from './chains.js';
 import { getAddress } from 'ethers/lib/utils.js';
 
 export type ERC20Token = {

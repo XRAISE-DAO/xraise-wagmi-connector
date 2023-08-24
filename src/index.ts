@@ -1,11 +1,9 @@
 import {
   buildCustomRaiseConnector,
   defaultRaiseConnector,
-} from './wagmiRaiseConnector';
-import { web3 } from './web3Connector';
-import { RaisePaymaster } from './WalletPaymasters';
-import { WalletEnv } from './AppBridge';
-import { IWalletPaymaster } from './types';
+} from './wagmiRaiseConnector.js';
+import { web3 } from './web3Connector.js';
+import { RaisePaymaster } from './WalletPaymasters.js';
 
 export {
   defaultRaiseConnector,
@@ -13,5 +11,3 @@ export {
   web3,
   RaisePaymaster,
 };
-
-export type { IWalletPaymaster, WalletEnv };

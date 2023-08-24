@@ -1,15 +1,14 @@
 import { BigNumber, ethers } from 'ethers';
 import { Deferrable, parseUnits } from 'ethers/lib/utils.js';
 import { Provider, types, utils } from 'zksync-web3';
-import { TransactionRequest } from 'zksync-web3/build/src/types';
 import {
   PAYMASTER_ADDRESS,
   USDC_ADDRESS,
   USDT_PAYMASTER_ADDRESS,
-} from './constants/index';
-import { ERC20Token, FEE_PAYMENT_TOKENS } from './constants/tokens';
-import { SupportedChainId } from './constants/chains';
-import { IWalletPaymaster } from './types';
+} from './constants/index.js';
+import { ERC20Token, FEE_PAYMENT_TOKENS } from './constants/tokens.js';
+import { SupportedChainId } from './constants/chains.js';
+import { IWalletPaymaster } from './types.js';
 
 export const PAYMASTER_ADJUSTED_GASLIMIT = 30_000; // Additional gas for paymasters execution
 

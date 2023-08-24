@@ -1,8 +1,8 @@
 import { Provider, types } from 'zksync-web3';
 import { Deferrable, parseUnits } from 'ethers/lib/utils.js';
-import { TransactionRequest } from 'zksync-web3/build/src/types';
+import { TransactionRequest } from 'zksync-web3/build/src/types.js';
 import { BigNumber, ethers } from 'ethers';
-import { ERC20Token } from './constants/tokens';
+import { ERC20Token } from './constants/tokens.js';
 
 export interface IWalletPaymaster {
   id: string;
@@ -21,3 +21,5 @@ export interface IWalletPaymaster {
     transaction: ethers.utils.Deferrable<types.TransactionRequest>,
   ): BigNumber;
 }
+
+export type WalletEnv = 'local' | 'testnet' | 'mainnet';

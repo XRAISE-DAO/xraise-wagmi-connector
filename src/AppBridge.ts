@@ -4,9 +4,10 @@ import { arrayify, Deferrable } from 'ethers/lib/utils.js';
 import {
   PaymasterParams,
   TransactionRequest,
-} from 'zksync-web3/build/src/types';
+} from 'zksync-web3/build/src/types.js';
 import { types } from 'zksync-web3';
-import { serialize } from 'zksync-web3/build/src/utils';
+import { serialize } from 'zksync-web3/build/src/utils.js';
+import { WalletEnv } from './types.js';
 
 export interface SessionCreationParams {
   allowedAddresses: string[];
@@ -40,8 +41,6 @@ export interface ISession {
   sessionAddress: string;
   userAccount: string;
 }
-
-export type WalletEnv = 'local' | 'testnet' | 'mainnet';
 
 interface AppBridgeConstructorParams {
   walletEnv?: WalletEnv;

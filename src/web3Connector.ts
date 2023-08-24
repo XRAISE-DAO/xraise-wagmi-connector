@@ -1,10 +1,9 @@
-import { SessionFacetABI } from './abis/SessionFacet';
-import { defaultRaiseConnector } from './wagmiRaiseConnector';
+import { SessionFacetABI } from './abis/SessionFacet.js';
+import { defaultRaiseConnector } from './wagmiRaiseConnector.js';
 import { BigNumber, ethers } from 'ethers';
-import { zkSyncProvider } from './utils';
-import { RaiseSubsidizingPaymaster } from './WalletPaymasters';
+import { zkSyncProvider } from './utils.js';
 import { parseUnits } from 'ethers/lib/utils.js';
-import { ZKSYNC_GAS_PRICE } from './constants/index';
+import { ZKSYNC_GAS_PRICE } from './constants/index.js';
 
 enum SessionPeriod {
   FiveMinutes = 0,

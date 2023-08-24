@@ -8,25 +8,20 @@ import { BigNumber, ethers, Signer } from 'ethers';
 import { Bytes, Deferrable, getAddress } from 'ethers/lib/utils.js';
 import type { Chain } from '@wagmi/core/chains';
 import type { Address } from 'abitype';
-import {
-  AppBridge,
-  ISession,
-  SessionCreationParams,
-  WalletEnv,
-} from './AppBridge';
+import { AppBridge, ISession, SessionCreationParams } from './AppBridge.js';
 import { Provider, types, utils, Wallet } from 'zksync-web3';
-import { TransactionRequest } from 'zksync-web3/build/src/types';
-import { zkSync } from './utils';
+import { TransactionRequest } from 'zksync-web3/build/src/types.js';
+import { zkSync } from './utils.js';
 import { Connector } from 'wagmi';
 import {
   PAYMASTER_ADJUSTED_GASLIMIT,
   RaisePaymaster,
   RaiseSubsidizingPaymaster,
-} from './WalletPaymasters';
-import { zkSyncProvider } from './utils';
-import { sleep } from './utils';
-import { ZKSYNC_GAS_PRICE } from './constants/index';
-import { IWalletPaymaster } from './types';
+} from './WalletPaymasters.js';
+import { zkSyncProvider } from './utils.js';
+import { sleep } from './utils.js';
+import { ZKSYNC_GAS_PRICE } from './constants/index.js';
+import { IWalletPaymaster, WalletEnv } from './types.js';
 
 export type ConnectorData<Provider = any> = {
   account?: Address;
@@ -339,7 +334,7 @@ export class RaiseConnector extends Connector<
     return 280;
   }
 
-  async getProvider() {
+  async getProvider(): Promise<any> {
     const provider = this.options.getProvider();
     if (provider) this._provider = provider;
     return this._provider;
