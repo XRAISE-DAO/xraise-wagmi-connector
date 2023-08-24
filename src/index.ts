@@ -6,6 +6,7 @@ import { web3 } from './web3Connector';
 import { RaisePaymaster, IWalletPaymaster } from './WalletPaymasters';
 import { ILoginManager } from './platform_authenticator/ILoginManager';
 import { EVENTS } from './events';
+import { WalletEnv } from './AppBridge';
 
 export {
   defaultRaiseConnector,
@@ -13,6 +14,7 @@ export {
   web3,
   RaisePaymaster,
   EVENTS,
+  WalletEnv,
 };
 
 export type { IWalletPaymaster, ILoginManager };
