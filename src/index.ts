@@ -12,7 +12,7 @@ export {
   buildCustomRaiseConnector,
   web3,
   RaisePaymaster,
-  IWalletPaymaster,
-  ILoginManager,
   EVENTS,
 };
+
+export type { IWalletPaymaster, ILoginManager };
