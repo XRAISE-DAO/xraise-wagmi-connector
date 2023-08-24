@@ -1,5 +1,3 @@
-'use client';
-
 import { SessionFacetABI } from './abis/SessionFacet';
 import { defaultRaiseConnector } from './wagmiRaiseConnector';
 import { BigNumber, ethers } from 'ethers';

@@ -3,8 +3,9 @@ import {
   defaultRaiseConnector,
 } from './wagmiRaiseConnector';
 import { web3 } from './web3Connector';
-import { RaisePaymaster, IWalletPaymaster } from './WalletPaymasters';
+import { RaisePaymaster } from './WalletPaymasters';
 import { WalletEnv } from './AppBridge';
+import { IWalletPaymaster } from './types';
 
 export {
   defaultRaiseConnector,

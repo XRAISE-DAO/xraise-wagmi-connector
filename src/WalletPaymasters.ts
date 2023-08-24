@@ -9,25 +9,9 @@ import {
 } from './constants/index';
 import { ERC20Token, FEE_PAYMENT_TOKENS } from './constants/tokens';
 import { SupportedChainId } from './constants/chains';
+import { IWalletPaymaster } from './types';
 
 export const PAYMASTER_ADJUSTED_GASLIMIT = 30_000; // Additional gas for paymasters execution
-export interface IWalletPaymaster {
-  id: string;
-  address: string;
-  getPaymasterParams(
-    provider: Provider,
-    transaction: Deferrable<TransactionRequest>,
-  ): Promise<{
-    paymasterParams: types.PaymasterParams | undefined;
-    minimalAllowance: BigNumber;
-    feeToken: ERC20Token | undefined;
-    estimatedFee: BigNumber | undefined;
-  }>;
-  getFeeToken(): ERC20Token | undefined;
-  getEstimatedFee(
-    transaction: ethers.utils.Deferrable<types.TransactionRequest>,
-  ): BigNumber;
-}
 
 export class RaisePaymaster implements IWalletPaymaster {
   id = 'raise';

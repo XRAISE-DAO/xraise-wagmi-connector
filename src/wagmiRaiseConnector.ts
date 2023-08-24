@@ -1,5 +1,3 @@
-'use client';
-
 import type { ProviderRpcError } from '@wagmi/core';
 import {
   ConnectorNotFoundError,
@@ -21,7 +19,6 @@ import { TransactionRequest } from 'zksync-web3/build/src/types';
 import { zkSync } from './utils';
 import { Connector } from 'wagmi';
 import {
-  IWalletPaymaster,
   PAYMASTER_ADJUSTED_GASLIMIT,
   RaisePaymaster,
   RaiseSubsidizingPaymaster,
@@ -29,6 +26,7 @@ import {
 import { zkSyncProvider } from './utils';
 import { sleep } from './utils';
 import { ZKSYNC_GAS_PRICE } from './constants/index';
+import { IWalletPaymaster } from './types';
 
 export type ConnectorData<Provider = any> = {
   account?: Address;
