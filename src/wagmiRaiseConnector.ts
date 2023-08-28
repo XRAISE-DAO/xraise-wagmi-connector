@@ -160,7 +160,7 @@ export class RaiseConnector extends Connector<
     if (iframe == null) {
       iframe = window.document.createElement('iframe');
       iframe.id = 'raise-bridge';
-      iframe.src = '/bridge';
+      iframe.src = `${this.bridge.url}/bridge`;
       iframe.style.display = 'none';
       iframe.sandbox.add('allow-scripts');
       iframe.sandbox.add('allow-same-origin');
