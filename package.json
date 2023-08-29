@@ -1,7 +1,7 @@
 {
   "name": "xraise-wagmi-connector",
   "version": "1.0.26",
-  "description": "",
+  "description": "Connect XRaise AA Wallet with wagmi",
   "main": "build/index.js",
   "types": "build/index.d.ts",
   "type": "module",
@@ -25,7 +25,16 @@
     "wagmi": "0.10.11",
     "zksync-web3": "^0.14.3"
   },
-  "keywords": [],
+  "keywords": [
+    "react",
+    "hooks",
+    "eth",
+    "ethereum",
+    "dapps",
+    "wallet",
+    "web3",
+    "abi"
+  ],
   "author": "",
   "license": "ISC",
   "devDependencies": {
